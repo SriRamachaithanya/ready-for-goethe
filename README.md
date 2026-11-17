@@ -42,10 +42,26 @@ In the official Goethe exam, excellence in vocabulary cannot compensate for fail
 When mistakes occur, topics are ranked by:
 1. **Mistake count** (highest frequency first).
 2. **Lowest-scoring skill** as tie-breaker (mistakes in weak modules are prioritized).
-3. The top 2–3 actionable practice tips are mapped and rendered.
+3. The top 2–3 actionable practice tips are mapped and rendered (supplemented by reinforcement topics if only one topic had mistakes).
 4. If 0 mistakes occur: *"Take a full official practice exam before booking."*
 
 All thresholds and verdict copy are centralized in `src/lib/scoring.js`.
+
+---
+
+### 4. How reliable is this score?
+
+For a learner whose true ability is the same in all three skills:
+
+| True ability | Chance a skill shows Cleared | Chance of "Ready to book" |
+| :--- | :--- | :--- |
+| 50% | 31% | 3% |
+| 60% (real pass mark) | 48% | 11% |
+| 70% | 65% | 28% |
+| 80% | 82% | 55% |
+| 90% | 95% | 85% |
+
+The check is deliberately conservative to protect learners from premature exam bookings. With only 4 questions per skill, individual outcomes carry statistical noise and should be interpreted as a safety guide rather than an absolute prediction. In version 2, these probability gates should be directly calibrated against real exam results from cohorts of Indian test-takers.
 
 ---
 
@@ -201,3 +217,4 @@ VITE_BASE_PATH="/exam-ready-german/" npm run build
 
 ## ⚖️ Legal & Disclaimer
 *Exam Ready is an independent preparation tool created by Globio. It is not affiliated with, approved by, or endorsed by the Goethe-Institut.*
+
