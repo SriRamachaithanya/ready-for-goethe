@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateReadiness, getSkillStatus, SCORING_CONFIG } from './scoring.js';
+import { calculateReadiness, getSkillStatus, nextStepHint, SCORING_CONFIG } from './scoring.js';
 import { practiceTips } from '../data/questions.js';
 
 describe('Scoring & Readiness Logic', () => {
@@ -12,6 +12,15 @@ describe('Scoring & Readiness Logic', () => {
     expect(getSkillStatus(50)).toBe('borderline');
     expect(getSkillStatus(49.9)).toBe('not_yet');
     expect(getSkillStatus(0)).toBe('not_yet');
+  });
+
+  it('handles nextStepHint at 1/4, 2/4, 3/4 and edge cases', () => {
+    // B5 tests
+    expect(nextStepHint(1, 4)).toBe('One more correct answer would change this to Borderline');
+    expect(nextStepHint(2, 4)).toBe('One more correct answer would change this to Cleared');
+    expect(nextStepHint(3, 4)).toBeNull();
+    expect(nextStepHint(4, 4)).toBeNull();
+    expect(nextStepHint(0, 4)).toBeNull();
   });
 
   it('handles all correct answers (12/12) -> Ready to book, no-mistakes tip', () => {
@@ -47,6 +56,42 @@ describe('Scoring & Readiness Logic', () => {
 
     expect(result.recommendations).toHaveLength(0);
     expect(result.noMistakesRecommendation).toBe('Take a full official practice exam before booking.');
+  });
+
+  it('B3 top-up logic: exactly one mistake gives 2-3 practice items', () => {
+    // 1 mistake in vocabulary ('greetings')
+    const answers = [
+      { id: 'v1', skill: 'vocabulary', topic: 'greetings', isCorrect: false },
+      { id: 'v2', skill: 'vocabulary', topic: 'numbers-time', isCorrect: true },
+      { id: 'v3', skill: 'vocabulary', topic: 'family', isCorrect: true },
+      { id: 'v4', skill: 'vocabulary', topic: 'food-shopping', isCorrect: true },
+      { id: 'g1', skill: 'grammar', topic: 'articles', isCorrect: true },
+      { id: 'g2', skill: 'grammar', topic: 'verb-conjugation', isCorrect: true },
+      { id: 'g3', skill: 'grammar', topic: 'word-order', isCorrect: true },
+      { id: 'g4', skill: 'grammar', topic: 'negation', isCorrect: true },
+      { id: 'r1', skill: 'reading', topic: 'reading-messages', isCorrect: true },
+      { id: 'r2', skill: 'reading', topic: 'reading-messages', isCorrect: true },
+      { id: 'r3', skill: 'reading', topic: 'reading-notices', isCorrect: true },
+      { id: 'r4', skill: 'reading', topic: 'reading-notices', isCorrect: true },
+    ];
+
+    const result = calculateReadiness(answers, practiceTips);
+
+    // Total recommendations must be between 2 and 3
+    expect(result.recommendations.length).toBeGreaterThanOrEqual(2);
+    expect(result.recommendations.length).toBeLessThanOrEqual(3);
+
+    // First recommendation is the mistake topic
+    expect(result.recommendations[0].topic).toBe('greetings');
+    expect(result.recommendations[0].mistakeCount).toBe(1);
+    expect(result.recommendations[0].reinforce).toBe(false);
+
+    // Subsequent recommendations are "reinforce" items from the weakest skill (vocabulary)
+    for (let i = 1; i < result.recommendations.length; i++) {
+      expect(result.recommendations[i].reinforce).toBe(true);
+      expect(result.recommendations[i].skill).toBe('vocabulary');
+      expect(result.recommendations[i].mistakeCount).toBe(0);
+    }
   });
 
   it('handles all wrong answers (0/12) -> Not yet', () => {
@@ -138,20 +183,6 @@ describe('Scoring & Readiness Logic', () => {
   });
 
   it('ranks practice recommendations by mistake count, breaking ties by lowest-scoring skill', () => {
-    // Let's create:
-    // reading: 1/4 (25%) -> mistakes in reading-messages: 2 mistakes
-    // grammar: 2/4 (50%) -> mistakes in articles: 1 mistake
-    // vocabulary: 3/4 (75%) -> mistakes in greetings: 1 mistake
-    //
-    // Mistake counts:
-    // reading-messages: 2
-    // articles: 1 (from grammar, score 50%)
-    // greetings: 1 (from vocab, score 75%)
-    //
-    // Ordering must be:
-    // 1. reading-messages (2 mistakes)
-    // 2. articles (1 mistake, skill score 50% < 75%)
-    // 3. greetings (1 mistake, skill score 75%)
     const answers = [
       { id: 'v1', skill: 'vocabulary', topic: 'greetings', isCorrect: false }, // 1 mistake
       { id: 'v2', skill: 'vocabulary', topic: 'numbers-time', isCorrect: true },
@@ -177,15 +208,9 @@ describe('Scoring & Readiness Logic', () => {
     expect(result.recommendations[0].topic).toBe('reading-messages');
     expect(result.recommendations[0].mistakeCount).toBe(2);
 
-    // Tied mistake counts (1 each):
-    // reading-notices is from reading (25%)
-    // articles and verb-conjugation are from grammar (50%)
-    // greetings is from vocab (75%)
-    // Thus reading-notices (skillScore 25%) should be ranked #2!
     expect(result.recommendations[1].topic).toBe('reading-notices');
     expect(result.recommendations[1].skillScore).toBe(25);
 
-    // Rank #3 should be from grammar (50%), either articles or verb-conjugation
     expect(result.recommendations[2].skillScore).toBe(50);
   });
 });
