@@ -3,6 +3,7 @@ import { Check, X, Info, ArrowRight } from 'lucide-react';
 import NoticePanel from './NoticePanel.jsx';
 
 export default function QuestionCard({
+  headingRef,
   question,
   questionNumber,
   isLastQuestion,
@@ -27,6 +28,9 @@ export default function QuestionCard({
     const handleKeyDown = (e) => {
       // Don't trigger if user is typing in an input
       if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+
+      // Don't trigger if a dialog is open (e.g. How it works modal)
+      if (document.querySelector('[role="dialog"]')) return;
 
       if (!isAnswered) {
         if (['1', '2', '3', '4'].includes(e.key)) {
@@ -73,12 +77,9 @@ export default function QuestionCard({
         />
 
         {/* Skill Badge */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center mb-4">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-ink/[0.06] text-ink">
             {skillLabels[question.skill] || question.skill}
-          </span>
-          <span className="text-xs text-ink-muted">
-            {question.topic}
           </span>
         </div>
 
@@ -87,7 +88,9 @@ export default function QuestionCard({
 
         {/* Question Prompt */}
         <h2
-          className="font-serif font-bold text-xl sm:text-2xl text-ink leading-snug mb-6"
+          ref={headingRef}
+          tabIndex={-1}
+          className="font-serif font-bold text-xl sm:text-2xl text-ink leading-snug mb-6 focus:outline-none"
           lang="de"
         >
           {question.prompt}
@@ -148,7 +151,7 @@ export default function QuestionCard({
                 aria-checked={isSelected}
                 disabled={isAnswered}
                 onClick={() => onSelectOption(option)}
-                className={`w-full min-h-[56px] px-4 py-3 rounded-card border-[1.5px] flex items-center text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ink focus-visible:ring-offset-2 ${buttonStyles}`}
+                className={`w-full min-h-[56px] px-4 py-3 rounded-card border-[1.5px] flex items-center text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 ${buttonStyles}`}
               >
                 {/* 1-4 Badge */}
                 <span
@@ -200,7 +203,7 @@ export default function QuestionCard({
               <button
                 type="button"
                 onClick={onNextQuestion}
-                className="w-full sm:w-auto ml-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-btn bg-ink text-paper font-semibold text-sm hover:bg-ink/90 transition-all shadow-sm focus-visible:ring-3 focus-visible:ring-ink"
+                className="w-full sm:w-auto ml-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-btn bg-ink text-paper font-semibold text-sm hover:bg-ink/90 transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-ink"
               >
                 <span>{isLastQuestion ? 'See my boarding pass' : 'Next question'}</span>
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -212,3 +215,4 @@ export default function QuestionCard({
     </div>
   );
 }
+

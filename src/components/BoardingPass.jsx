@@ -1,7 +1,8 @@
 import React from 'react';
-import { Plane, Calendar, User } from 'lucide-react';
+import { Plane } from 'lucide-react';
 import StampBadge from './StampBadge.jsx';
 import Barcode from './Barcode.jsx';
+import { nextStepHint } from '../lib/scoring.js';
 
 export default function BoardingPass({
   passengerName,
@@ -45,10 +46,61 @@ export default function BoardingPass({
 
   return (
     <div className="w-full max-w-[960px] mx-auto printable-area">
-      <div className="bg-surface rounded-card border-[1.5px] border-ink/14 shadow-card overflow-hidden flex flex-col md:flex-row relative">
+      <div className="bg-surface rounded-card border-[1.5px] border-ink/14 shadow-card overflow-hidden flex flex-col sm:flex-row relative">
         
-        {/* ================= MAIN SECTION ================= */}
-        <div className="flex-1 p-6 sm:p-8 flex flex-col justify-between relative">
+        {/* ================= STUB (ABOVE GATES ON MOBILE < 640px, RIGHT ON DESKTOP) ================= */}
+        <div className="w-full sm:w-[290px] bg-paper/40 p-6 sm:p-7 flex flex-col justify-between order-1 sm:order-2">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-ink/10">
+              <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-ink-muted">
+                FLIGHT STATUS
+              </span>
+              <span className="text-[11px] font-mono text-ink/60">SEAT: 01A</span>
+            </div>
+
+            {/* Verdict */}
+            <div className="mt-5 mb-4">
+              <span className="text-xs uppercase tracking-wider text-ink-muted font-semibold block mb-1">
+                Verdict
+              </span>
+              <h3
+                className={`font-serif font-bold text-2xl sm:text-3xl leading-tight ${verdictColors[verdictKey] || 'text-ink'}`}
+              >
+                {verdict}
+              </h3>
+            </div>
+
+            {/* Plain-language explanation */}
+            <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-sans mb-6">
+              {verdictSubtitle}
+            </p>
+          </div>
+
+          {/* Barcode section directly after verdict & subtitle */}
+          <div className="mt-auto pt-4 border-t border-ink/10">
+            <Barcode answers={answers} />
+          </div>
+        </div>
+
+        {/* ================= PERFORATION LINE & NOTCHES ================= */}
+        {/* Desktop Vertical Perforation (between Main left and Stub right) */}
+        <div className="hidden sm:flex flex-col items-center justify-between relative w-0 border-r-[2px] border-dashed border-ink/20 sm:order-none">
+          {/* Top Semicircle Notch */}
+          <div className="absolute -top-3.5 -right-3.5 w-7 h-7 rounded-full bg-paper border-b-[1.5px] border-ink/14 shadow-[inset_0_-2px_4px_rgba(20,33,61,0.06)]" />
+          {/* Bottom Semicircle Notch */}
+          <div className="absolute -bottom-3.5 -right-3.5 w-7 h-7 rounded-full bg-paper border-t-[1.5px] border-ink/14 shadow-[inset_0_2px_4px_rgba(20,33,61,0.06)]" />
+        </div>
+
+        {/* Mobile Horizontal Perforation (between Stub top and Main bottom) */}
+        <div className="sm:hidden flex items-center justify-between relative h-0 border-b-[2px] border-dashed border-ink/20 order-2">
+          {/* Left Semicircle Notch */}
+          <div className="absolute -left-3.5 -top-3.5 w-7 h-7 rounded-full bg-paper border-r-[1.5px] border-ink/14 shadow-[inset_-2px_0_4px_rgba(20,33,61,0.06)]" />
+          {/* Right Semicircle Notch */}
+          <div className="absolute -right-3.5 -top-3.5 w-7 h-7 rounded-full bg-paper border-l-[1.5px] border-ink/14 shadow-[inset_2px_0_4px_rgba(20,33,61,0.06)]" />
+        </div>
+
+        {/* ================= MAIN SECTION (GATES & ROUTE) ================= */}
+        <div className="flex-1 p-6 sm:p-8 flex flex-col justify-between relative order-3 sm:order-1">
           
           {/* Header Strip */}
           <div className="border-b-[1.5px] border-ink/10 pb-5 mb-6">
@@ -92,6 +144,7 @@ export default function BoardingPass({
             {gates.map((gate) => {
               const skillData = skills[gate.key] || { correct: 0, total: 4, percentage: 0, status: 'not_yet' };
               const percent = skillData.percentage;
+              const hint = nextStepHint(skillData.correct, skillData.total);
 
               return (
                 <div
@@ -111,11 +164,11 @@ export default function BoardingPass({
                     </span>
                   </div>
 
-                  {/* Horizontal Bar with 50% and 75% tick markers */}
+                  {/* Horizontal Bar with 50% and 75% tick markers (A2 fix) */}
                   <div className="flex-1 sm:px-4">
-                    <div className="relative pt-4 pb-2">
-                      {/* Bar track */}
-                      <div className="h-3 w-full bg-ink/10 rounded-full overflow-hidden relative">
+                    <div className="relative pt-1 pb-6">
+                      {/* Bar track - clearly visible at 0% */}
+                      <div className="h-3 w-full bg-ink/10 border border-ink/10 rounded-full overflow-hidden relative">
                         <div
                           className={`h-full rounded-full transition-all duration-700 ease-out ${
                             skillData.status === 'ready'
@@ -128,37 +181,39 @@ export default function BoardingPass({
                         />
                       </div>
 
-                      {/* Threshold Tick Marker: 50% */}
-                      <div
-                        className="absolute top-1 bottom-0 flex flex-col items-center pointer-events-none"
-                        style={{ left: '50%' }}
-                      >
-                        <div className="h-6 w-[2px] bg-ink/30 -mt-1" />
-                        <span className="text-[10px] font-mono text-ink-muted mt-1 transform -translate-x-1/2">
-                          50%
-                        </span>
-                      </div>
-
-                      {/* Threshold Tick Marker: 75% */}
-                      <div
-                        className="absolute top-1 bottom-0 flex flex-col items-center pointer-events-none"
-                        style={{ left: '75%' }}
-                      >
-                        <div className="h-6 w-[2px] bg-ink/40 -mt-1" />
-                        <span className="text-[10px] font-mono text-ink-muted font-bold mt-1 transform -translate-x-1/2">
-                          75%
-                        </span>
-                      </div>
+                      {/* Threshold Ticks & Labels: 50% and 75% */}
+                      {[50, 75].map((t) => (
+                        <div
+                          key={t}
+                          className="absolute top-0 pointer-events-none -translate-x-1/2"
+                          style={{ left: `${t}%` }}
+                        >
+                          <div className="w-[2px] h-[20px] bg-ink/50 mx-auto" />
+                          <span className="absolute top-[22px] left-1/2 -translate-x-1/2 text-[10px] font-mono text-ink-muted whitespace-nowrap">
+                            {t}%
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Stamp Badge */}
-                  <div className="sm:w-32 flex sm:justify-end items-center">
+                  {/* Stamp Badge & Threshold Hint */}
+                  <div className="sm:w-36 flex flex-col sm:items-end justify-center">
                     <StampBadge status={skillData.status} delayClass={gate.delay} />
+                    {hint && (
+                      <span className="text-[11px] text-ink-muted mt-1 sm:text-right leading-tight">
+                        {hint}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
             })}
+
+            {/* B5: Honest uncertainty line under the gates */}
+            <p className="text-xs text-ink-muted italic pt-1">
+              Each skill has only 4 questions, so one answer can change a status. Treat this as a guide, not a prediction.
+            </p>
           </div>
 
           {/* Bottom Route line hint */}
@@ -166,57 +221,6 @@ export default function BoardingPass({
             <span>ORIGIN: INDIA (DEL / BOM / BLR)</span>
             <span className="hidden sm:inline">✈ DIRECT CLEARANCE</span>
             <span>DEST: DEUTSCHLAND</span>
-          </div>
-        </div>
-
-        {/* ================= PERFORATION LINE & NOTCHES ================= */}
-        {/* Desktop Vertical Perforation */}
-        <div className="hidden md:flex flex-col items-center justify-between relative w-0 border-r-[2px] border-dashed border-ink/20">
-          {/* Top Semicircle Notch */}
-          <div className="absolute -top-3.5 -right-3.5 w-7 h-7 rounded-full bg-paper border-b-[1.5px] border-ink/14 shadow-[inset_0_-2px_4px_rgba(20,33,61,0.06)]" />
-          {/* Bottom Semicircle Notch */}
-          <div className="absolute -bottom-3.5 -right-3.5 w-7 h-7 rounded-full bg-paper border-t-[1.5px] border-ink/14 shadow-[inset_0_2px_4px_rgba(20,33,61,0.06)]" />
-        </div>
-
-        {/* Mobile Horizontal Perforation */}
-        <div className="md:hidden flex items-center justify-between relative h-0 border-b-[2px] border-dashed border-ink/20">
-          {/* Left Semicircle Notch */}
-          <div className="absolute -left-3.5 -top-3.5 w-7 h-7 rounded-full bg-paper border-r-[1.5px] border-ink/14 shadow-[inset_-2px_0_4px_rgba(20,33,61,0.06)]" />
-          {/* Right Semicircle Notch */}
-          <div className="absolute -right-3.5 -top-3.5 w-7 h-7 rounded-full bg-paper border-l-[1.5px] border-ink/14 shadow-[inset_2px_0_4px_rgba(20,33,61,0.06)]" />
-        </div>
-
-        {/* ================= STUB (RIGHT OR BOTTOM) ================= */}
-        <div className="w-full md:w-[290px] bg-paper/40 p-6 sm:p-7 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-ink/10">
-              <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-ink-muted">
-                FLIGHT STATUS
-              </span>
-              <span className="text-[11px] font-mono text-ink/60">SEAT: 01A</span>
-            </div>
-
-            {/* Verdict */}
-            <div className="mt-5 mb-4">
-              <span className="text-xs uppercase tracking-wider text-ink-muted font-semibold block mb-1">
-                Verdict
-              </span>
-              <h3
-                className={`font-serif font-bold text-2xl sm:text-3xl leading-tight ${verdictColors[verdictKey] || 'text-ink'}`}
-              >
-                {verdict}
-              </h3>
-            </div>
-
-            {/* Plain-language explanation */}
-            <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-sans mb-6">
-              {verdictSubtitle}
-            </p>
-          </div>
-
-          {/* Barcode section */}
-          <div className="mt-auto pt-4 border-t border-ink/10">
-            <Barcode answers={answers} />
           </div>
         </div>
 

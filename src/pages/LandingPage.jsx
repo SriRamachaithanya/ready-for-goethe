@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plane, ArrowRight, CheckCircle2, Shield, Clock, BookOpen } from 'lucide-react';
 
-export default function LandingPage({ passengerName, setPassengerName, onStartQuiz }) {
+export default function LandingPage({ headingRef, passengerName, setPassengerName, onStartQuiz }) {
   const [localName, setLocalName] = useState(passengerName || '');
 
   const handleSubmit = (e) => {
@@ -18,7 +18,11 @@ export default function LandingPage({ passengerName, setPassengerName, onStartQu
           <Plane className="w-3.5 h-3.5 rotate-45" aria-hidden="true" />
           Goethe-Zertifikat A1 Pre-Flight Check
         </span>
-        <h1 className="heading-fluid font-serif font-bold text-ink tracking-tight text-balance">
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="heading-fluid font-serif font-bold text-ink tracking-tight text-balance focus:outline-none"
+        >
           Are you ready for your German exam?
         </h1>
         <p className="mt-4 text-base sm:text-lg text-ink-muted leading-relaxed max-w-xl mx-auto text-balance">
@@ -95,7 +99,7 @@ export default function LandingPage({ passengerName, setPassengerName, onStartQu
 
           <button
             type="submit"
-            className="w-full h-[52px] rounded-btn bg-ink text-paper font-semibold text-base flex items-center justify-center gap-2.5 hover:bg-ink/90 active:scale-[0.99] transition-all shadow-md focus-visible:ring-3 focus-visible:ring-ink"
+            className="w-full h-[52px] rounded-btn bg-ink text-paper font-semibold text-base flex items-center justify-center gap-2.5 hover:bg-ink/90 active:scale-[0.99] transition-all shadow-md focus-visible:ring-2 focus-visible:ring-ink"
           >
             <span>Start check</span>
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -115,7 +119,7 @@ export default function LandingPage({ passengerName, setPassengerName, onStartQu
           </div>
           <div>
             <span className="font-semibold text-sm text-ink block">12 questions</span>
-            <span className="text-xs text-ink-muted">Carefully selected high-signal A1 items</span>
+            <span className="text-xs text-ink-muted">Short A1 questions on everyday German</span>
           </div>
         </div>
 
@@ -142,3 +146,4 @@ export default function LandingPage({ passengerName, setPassengerName, onStartQu
     </div>
   );
 }
+

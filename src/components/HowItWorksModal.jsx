@@ -71,7 +71,7 @@ export default function HowItWorksModal({ isOpen, onClose }) {
               How we calculate readiness
             </h2>
             <p className="text-sm text-ink-muted mt-0.5">
-              Transparent, data-backed gates for Goethe A1
+              Our scoring rules, explained simply
             </p>
           </div>
           <button
@@ -92,7 +92,7 @@ export default function HowItWorksModal({ isOpen, onClose }) {
             <div>
               <p className="font-semibold text-ink">The Real Exam Standard (60%)</p>
               <p className="text-xs text-ink-muted mt-1">
-                The Goethe-Institut requires a minimum of 60% to pass each section. Because our diagnostic check is compact (12 high-signal questions), we build in an intentional safety margin so you do not gamble your exam fee.
+                The Goethe-Institut sets the pass mark at 60%. Because our diagnostic check is compact (12 questions), we build in an intentional safety margin so you do not gamble your exam fee.
               </p>
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function HowItWorksModal({ isOpen, onClose }) {
           <div>
             <h3 className="font-semibold text-ink text-sm">The Weakest-Skill Principle</h3>
             <p className="text-xs text-ink-muted mt-1">
-              Your overall boarding pass verdict is driven by your weakest skill, not your average score. Even with 100% in Vocabulary and Grammar, falling below 50% in Reading marks your status as <em>Not yet</em>. In the real exam, weak foundational modules lead to failure.
+              Your overall boarding pass verdict is driven by your weakest skill, not your average score. Even with 100% in Vocabulary and Grammar, falling below 50% in Reading marks your status as <em>Not yet</em>. This is a cautious rule we chose on purpose: one weak skill can cost you the exam.
             </p>
           </div>
 

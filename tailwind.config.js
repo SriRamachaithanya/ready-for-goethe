@@ -7,21 +7,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        paper: "var(--color-paper)",
-        surface: "var(--color-surface)",
+        paper: "#F6F1E7",
+        surface: "#FFFDF8",
         ink: {
-          DEFAULT: "var(--color-ink)",
-          muted: "var(--color-ink-muted)",
-          border: "var(--color-border)",
+          DEFAULT: "#14213D",
+          muted: "#5B6475",
+          border: "rgba(20, 33, 61, 0.14)",
         },
         stamp: {
-          green: "var(--color-clearance-green)",
-          "green-tint": "var(--color-clearance-green-tint)",
-          amber: "var(--color-caution-amber)",
-          "amber-tint": "var(--color-caution-amber-tint)",
-          red: "var(--color-stop-red)",
-          "red-tint": "var(--color-stop-red-tint)",
+          green: "#2E7D5B",
+          "green-tint": "#2E7D5B1F",
+          amber: "#B97500",
+          "amber-tint": "#B975001F",
+          red: "#C8372D",
+          "red-tint": "#C8372D1F",
         },
+      },
+      opacity: {
+        14: "0.14",
+        85: "0.85",
       },
       fontFamily: {
         serif: ["Fraunces", "Georgia", "Cambria", "Times New Roman", "serif"],
