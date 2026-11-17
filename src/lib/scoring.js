@@ -40,6 +40,30 @@ export const SCORING_CONFIG = {
   noMistakesRecommendation: "Take a full official practice exam before booking.",
 };
 
+export const SKILL_TOPICS = {
+  vocabulary: ['greetings', 'numbers-time', 'family', 'food-shopping'],
+  grammar: ['articles', 'verb-conjugation', 'word-order', 'negation'],
+  reading: ['reading-messages', 'reading-notices'],
+};
+
+/**
+ * Returns a hint if the score is right on an evaluation threshold.
+ * @param {number} correctCount
+ * @param {number} total
+ * @returns {string | null}
+ */
+export function nextStepHint(correctCount, total = 4) {
+  if (total === 4) {
+    if (correctCount === 2) {
+      return "One more correct answer would change this to Cleared";
+    }
+    if (correctCount === 1) {
+      return "One more correct answer would change this to Borderline";
+    }
+  }
+  return null;
+}
+
 /**
  * Determine skill status based on score percentage
  * @param {number} percentage
@@ -90,6 +114,8 @@ export function calculateReadiness(answers = [], tipsMap = practiceTips) {
   let weakestStatusRank = 3; // 3: ready, 2: borderline, 1: not_yet
   let hasNotYet = false;
   let hasBorderline = false;
+  let weakestSkill = null;
+  let minSkillPercentage = Infinity;
 
   for (const [skillKey, data] of Object.entries(skillBuckets)) {
     const percentage = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
@@ -103,6 +129,11 @@ export function calculateReadiness(answers = [], tipsMap = practiceTips) {
       status,
       statusLabel: label,
     };
+
+    if (percentage < minSkillPercentage) {
+      minSkillPercentage = percentage;
+      weakestSkill = skillKey;
+    }
 
     if (status === SCORING_CONFIG.statusKeys.NOT_YET) {
       hasNotYet = true;
@@ -143,6 +174,7 @@ export function calculateReadiness(answers = [], tipsMap = practiceTips) {
       skill,
       skillScore,
       tip: tipsMap[topic] || '',
+      reinforce: false,
     };
   });
 
@@ -157,8 +189,31 @@ export function calculateReadiness(answers = [], tipsMap = practiceTips) {
     return a.topic.localeCompare(b.topic);
   });
 
-  // Take top 2-3 topics
-  const recommendations = topicsWithMistakes.slice(0, 3);
+  let recommendations = [];
+
+  if (topicsWithMistakes.length > 0) {
+    recommendations = topicsWithMistakes.slice(0, 3);
+
+    // B3: If fewer than 2 topics have mistakes, top up the list with 1-2 "reinforce"
+    // items taken from the weakest skill's other topics.
+    if (recommendations.length < 2 && weakestSkill) {
+      const existingTopics = new Set(recommendations.map((r) => r.topic));
+      const pool = (SKILL_TOPICS[weakestSkill] || []).filter((t) => !existingTopics.has(t));
+      const needed = Math.min(pool.length, 3 - recommendations.length);
+
+      for (let i = 0; i < needed; i++) {
+        const topTopic = pool[i];
+        recommendations.push({
+          topic: topTopic,
+          mistakeCount: 0,
+          skill: weakestSkill,
+          skillScore: skills[weakestSkill] ? skills[weakestSkill].percentage : 0,
+          tip: tipsMap[topTopic] || '',
+          reinforce: true,
+        });
+      }
+    }
+  }
 
   const overallPercentage = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
 

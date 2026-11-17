@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
 import HowItWorksModal from './components/HowItWorksModal.jsx';
@@ -23,6 +23,7 @@ export default function App() {
   const [answers, setAnswers] = useState([]);
   const [evaluation, setEvaluation] = useState(() => loadLastResult());
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
+  const [announcement, setAnnouncement] = useState('');
   const [examDate, setExamDate] = useState(() => {
     return new Date().toLocaleDateString('en-GB', {
       day: 'numeric',
@@ -31,13 +32,35 @@ export default function App() {
     });
   });
 
+  const headingRef = useRef(null);
+  const isInitialMount = useRef(true);
+
+  // Focus management across view changes (skipping initial page load)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    if (view === 'quiz') {
+      setAnnouncement('Question 1 of 12');
+    } else {
+      setAnnouncement('');
+    }
+
+    // Move focus without scrolling twice
+    if (headingRef.current) {
+      headingRef.current.focus({ preventScroll: true });
+    }
+  }, [view]);
+
   // Start new quiz session
   const handleStartQuiz = (name) => {
     const finalName = name !== undefined ? name : passengerName;
     setPassengerName(finalName);
     savePassengerName(finalName);
 
-    // Shuffle fresh questions and options
+    // Shuffle fresh questions and options (keeping passages contiguous)
     const sessionQuestions = prepareQuizSession(rawQuestions);
     setQuizQuestions(sessionQuestions);
     setAnswers([]);
@@ -77,6 +100,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between">
+      {/* Screen Reader Announcement */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
+
       {/* Header */}
       <Header onOpenHowItWorks={() => setIsHowItWorksOpen(true)} />
 
@@ -84,6 +112,7 @@ export default function App() {
       <main id="main-content" className="flex-1 flex flex-col justify-center">
         {view === 'landing' && (
           <LandingPage
+            headingRef={headingRef}
             passengerName={passengerName}
             setPassengerName={setPassengerName}
             onStartQuiz={handleStartQuiz}
@@ -92,6 +121,7 @@ export default function App() {
 
         {view === 'quiz' && (
           <QuizPage
+            headingRef={headingRef}
             questions={quizQuestions}
             onCompleteQuiz={handleCompleteQuiz}
           />
@@ -99,6 +129,7 @@ export default function App() {
 
         {view === 'result' && evaluation && (
           <ResultPage
+            headingRef={headingRef}
             passengerName={passengerName}
             evaluation={evaluation}
             answers={answers}

@@ -14,11 +14,38 @@ export function shuffleArray(arr) {
 }
 
 /**
+ * Prepares a single question with shuffled options and tracking by text
+ */
+function prepareSingleQuestion(q) {
+  const correctText = q.options[q.answerIndex];
+
+  const mappedOptions = q.options.map((optText, idx) => ({
+    id: `${q.id}-opt-${idx}`,
+    text: optText,
+    isCorrect: optText === correctText,
+  }));
+
+  const shuffledOptions = shuffleArray(mappedOptions);
+
+  return {
+    id: q.id,
+    skill: q.skill,
+    topic: q.topic,
+    prompt: q.prompt,
+    passage: q.passage,
+    explanation: q.explanation,
+    options: shuffledOptions,
+    correctText,
+  };
+}
+
+/**
  * Prepares a fresh quiz session:
- * 1. Shuffles questions within each skill (Vocabulary, Grammar, Reading)
- *    so the segmented progress bar neatly groups them under skill headers.
- * 2. Shuffles all 4 options for each question.
- * 3. Tracks correct answer by option text, never by original index.
+ * 1. Shuffles questions within Vocabulary and Grammar.
+ * 2. For Reading: groups questions by passage, shuffles passage order,
+ *    and keeps the two questions of each passage next to each other.
+ * 3. Shuffles all 4 options for each question.
+ * 4. Tracks correct answer by option text, never by original index.
  * 
  * @param {Array} rawQuestions 
  * @returns {Array} Prepared quiz questions ready for presentation
@@ -28,29 +55,34 @@ export function prepareQuizSession(rawQuestions) {
 
   for (const skill of SKILLS) {
     const skillQuestions = rawQuestions.filter((q) => q.skill === skill);
-    const shuffledSkillQuestions = shuffleArray(skillQuestions);
 
-    for (const q of shuffledSkillQuestions) {
-      const correctText = q.options[q.answerIndex];
+    if (skill === 'reading') {
+      // Group reading questions by passage
+      const passageMap = new Map();
+      for (const q of skillQuestions) {
+        const key = q.passage;
+        if (!passageMap.has(key)) {
+          passageMap.set(key, []);
+        }
+        passageMap.get(key).push(q);
+      }
 
-      const mappedOptions = q.options.map((optText, idx) => ({
-        id: `${q.id}-opt-${idx}`,
-        text: optText,
-        isCorrect: optText === correctText,
-      }));
+      // Shuffle the order of passages
+      const passageGroups = Array.from(passageMap.values());
+      const shuffledPassageGroups = shuffleArray(passageGroups);
 
-      const shuffledOptions = shuffleArray(mappedOptions);
-
-      preparedQuestions.push({
-        id: q.id,
-        skill: q.skill,
-        topic: q.topic,
-        prompt: q.prompt,
-        passage: q.passage,
-        explanation: q.explanation,
-        options: shuffledOptions,
-        correctText,
-      });
+      // Keep questions of each passage contiguous
+      for (const group of shuffledPassageGroups) {
+        const shuffledGroupQuestions = shuffleArray(group);
+        for (const q of shuffledGroupQuestions) {
+          preparedQuestions.push(prepareSingleQuestion(q));
+        }
+      }
+    } else {
+      const shuffledSkillQuestions = shuffleArray(skillQuestions);
+      for (const q of shuffledSkillQuestions) {
+        preparedQuestions.push(prepareSingleQuestion(q));
+      }
     }
   }
 

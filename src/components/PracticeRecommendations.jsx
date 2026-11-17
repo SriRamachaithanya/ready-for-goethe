@@ -50,8 +50,14 @@ export default function PracticeRecommendations({
                   <span className="w-6 h-6 rounded-full bg-ink text-paper text-xs font-bold flex items-center justify-center shrink-0">
                     {index + 1}
                   </span>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-ink/[0.06] text-ink">
-                    {item.skill}
+                  <span
+                    className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                      item.reinforce
+                        ? 'bg-stamp-amber-tint text-stamp-amber border border-stamp-amber/20'
+                        : 'bg-stamp-red-tint text-stamp-red border border-stamp-red/20'
+                    }`}
+                  >
+                    {item.reinforce ? 'Strengthen' : 'Fix this'}
                   </span>
                 </div>
 
@@ -65,8 +71,14 @@ export default function PracticeRecommendations({
               </div>
 
               <div className="mt-4 pt-3 border-t border-ink/10 flex items-center justify-between text-[11px] text-ink-muted">
-                <span>Mistakes: {item.mistakeCount}</span>
-                <span className="font-mono text-ink/60">Module focus</span>
+                <span>
+                  {item.reinforce
+                    ? 'Reinforce topic'
+                    : item.mistakeCount === 1
+                    ? 'Missed 1 question'
+                    : `Missed ${item.mistakeCount} questions`}
+                </span>
+                <span className="font-medium text-ink/75 capitalize">{item.skill}</span>
               </div>
             </div>
           ))}

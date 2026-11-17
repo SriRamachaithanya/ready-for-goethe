@@ -4,6 +4,7 @@ import BoardingPass from '../components/BoardingPass.jsx';
 import PracticeRecommendations from '../components/PracticeRecommendations.jsx';
 
 export default function ResultPage({
+  headingRef,
   passengerName,
   evaluation,
   answers = [],
@@ -23,7 +24,11 @@ export default function ResultPage({
           <span className="text-xs uppercase tracking-wider text-ink-muted font-mono block">
             VERIFICATION COMPLETE
           </span>
-          <h1 className="font-serif font-bold text-2xl sm:text-3xl text-ink">
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="font-serif font-bold text-2xl sm:text-3xl text-ink focus:outline-none"
+          >
             Your Exam Readiness Boarding Pass
           </h1>
         </div>

@@ -3,6 +3,7 @@ import ProgressBar from '../components/ProgressBar.jsx';
 import QuestionCard from '../components/QuestionCard.jsx';
 
 export default function QuizPage({
+  headingRef,
   questions,
   onCompleteQuiz,
 }) {
@@ -55,6 +56,7 @@ export default function QuizPage({
       {/* Active Question Card */}
       <QuestionCard
         key={currentQuestion.id}
+        headingRef={currentIndex === 0 ? headingRef : undefined}
         question={currentQuestion}
         questionNumber={currentIndex + 1}
         isLastQuestion={isLastQuestion}
@@ -66,3 +68,4 @@ export default function QuizPage({
     </div>
   );
 }
+
